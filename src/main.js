@@ -2,6 +2,7 @@ import Vue from 'vue';
 import VueRouter from 'vue-router';
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
 import VueDragDrop from 'vue-drag-drop';
+import PriorityQueue from 'js-priority-queue'
 
 import App from './App.vue';
 
@@ -11,6 +12,7 @@ Vue.use(VueRouter);
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 Vue.use(VueDragDrop);
+Vue.use(PriorityQueue);
 
 Vue.config.productionTip = false;
 

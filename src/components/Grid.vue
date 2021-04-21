@@ -66,7 +66,9 @@
   </div>
 </template>
 
+
 <script>
+import PriorityQueue from 'js-priority-queue';
 export default {
   name: 'Grid',
   props: {
@@ -192,6 +194,59 @@ export default {
       }
     },
 
+    getNeighbours: (node) => {
+      /**
+       * 000      10      00
+       * 010  OR  00  OR  10 .... 
+       * 000              00
+       */
+      const i = node.row;
+      const j = node.col;
+
+      const neighbours = [];
+
+      // if (i > 0 && j < nodes[i].length - 1) {
+      //   neighbours.push(nodes[i-1][j+1]);
+      // }
+
+      if (j < nodes[i].length - 1) {
+        neighbours.push(nodes[i][j+1]);
+      }
+
+      if (i > 0) {
+        neighbours.push(nodes[i-1][j]);
+      }
+
+      // if (j < nodes[i].length - 1 && i < nodes.length - 1) {
+      //   neighbours.push(nodes[i+1][j+1]);
+      // }
+
+      if (i < nodes.length - 1) {
+          neighbours.push(nodes[i+1][j]);
+      }
+
+      // if (i < nodes.length - 1 && j > 0) {
+      //   neighbours.push(nodes[i+1][j-1]);
+      // }
+
+      if (j > 0 ) {
+        neighbours.push(nodes[i][j-1]);
+      }
+
+      // if (i > 0 && j > 0) {
+      //   neighbours.push(nodes[i-1][j-1]);
+      // }
+
+      return neighbours;
+    },
+
+    isTarget: (node, targetNode) => {
+      if (node.row === targetNode.row && node.col === targetNode.col) {
+        return true;
+      }
+      return false
+    },
+
     dejkstra: (nodes, startNode, targetNode) => {
       /**
        * 1) Mark all nodes unvisited. Create a set of all the unvisited nodes called the unvisited set.
@@ -201,45 +256,55 @@ export default {
        * 5) If the destination node has been marked visited (when planning a route between two specific nodes) or if the smallest tentative distance among the nodes in the unvisited set is infinity (when planning a complete traversal; occurs when there is no connection between the initial node and remaining unvisited nodes), then stop. The algorithm has finished.
        * 6) Otherwise, select the unvisited node that is marked with the smallest tentative distance, set it as the new "current node", and go back to step 3.
        */
-      if (startNode === targetNode) {
+      if (isTarget(startNode, targetNode)) {
         return;
       }
 
       let distances = [];
       let visited = [];
-
+      
       for (let i = 0; i < nodes.length; i += 1) {
-
         let row = [];
-        let visRow = [];
         for (let j = 0; j < nodes[0].length; j += 1) {
           row[j] = Number.MAX_VALUE;
-          row[j] = false;
         }
         distances.push(row);
-        visited.push(visRow);
       }
 
       distances[startNode.row][startNode.col] = 0;
 
-      while (true) {
-        let shortestDistance = Number.MAX_VALUE;
-        let shortestIndex = -1;
+      let queue = new PriorityQueue({ 
+        comparator: (a, b) => { return distances[a.row][a.col] - distances[b.row][b.col]; }
+        });
 
-        for (let i = 0; i < nodes.length; i += 1) {
-          if (distances[i][0] < shortestDistance && !visited[i][0]) {
-            shortestDistance = distances[i][0];
-            shortestIndex = i;
+      queue.queue(startNode);
+
+      while (queue.length !== 0) {
+        let elem = queue.dequeue();
+        
+        console.log(elem)
+
+        let neighbours = getNeighbours(elem)
+        for (let i = 0; i < neighbours.length; i+=1) {
+
+          let n = neighbours[i];
+
+          if (isTarget(n, targetNode)) {
+            break
           }
-        }
 
-        if (shortestIndex === -1) {
-          return;
-        }
+          if (n.visited) {
+            continue
+          }
 
+          if (distances[n.row][n.col] > distances[elem.row][elem.col] + 1) {
+            n.visited = true;
+            distances[n.row][n.col] = distances[elem.row][elem.col] + 1
+            queue.queue(n);
+            n.path = True
+          }
+        } 
       }
-
-      console.log(distances);
       return;
     },
 
@@ -258,58 +323,6 @@ export default {
        * 5) If the destination node has been marked visited (when planning a route between two specific nodes) or if the smallest tentative distance among the nodes in the unvisited set is infinity (when planning a complete traversal; occurs when there is no connection between the initial node and remaining unvisited nodes), then stop. The algorithm has finished.
        * 6) Otherwise, select the unvisited node that is marked with the smallest tentative distance, set it as the new "current node", and go back to step 3.
        */
-
-      // const start = nodes[7][4];
-      
-      // const target = nodes[16][16];
-      // target.target = true;
-
-      function getNeighbours(node){
-        /**
-         * 000      10      00
-         * 010  OR  00  OR  10 .... 
-         * 000              00
-         */
-
-        const i = node.row;
-        const j = node.col;
-
-        const neighbours = [];
-
-        // if (i > 0 && j < nodes[i].length - 1) {
-        //   neighbours.push(nodes[i-1][j+1]);
-        // }
-
-        if (j < nodes[i].length - 1) {
-          neighbours.push(nodes[i][j+1]);
-        }
-
-        if (i > 0) {
-          neighbours.push(nodes[i-1][j]);
-        }
-
-        // if (j < nodes[i].length - 1 && i < nodes.length - 1) {
-        //   neighbours.push(nodes[i+1][j+1]);
-        // }
-
-        if (i < nodes.length - 1) {
-           neighbours.push(nodes[i+1][j]);
-        }
-
-        // if (i < nodes.length - 1 && j > 0) {
-        //   neighbours.push(nodes[i+1][j-1]);
-        // }
-
-        if (j > 0 ) {
-          neighbours.push(nodes[i][j-1]);
-        }
-
-        // if (i > 0 && j > 0) {
-        //   neighbours.push(nodes[i-1][j-1]);
-        // }
-
-        return neighbours;
-      }
 
 
       function setPredecessor(predecessor, key, value) {
@@ -332,7 +345,7 @@ export default {
         while (q.length !== 0) {
 
           const el = q.shift(),
-                neighbours = getNeighbours(el);
+                neighbours = self.getNeighbours(el);
 
           for (let i = 0; i < neighbours.length; i+=1) {
             
@@ -356,6 +369,7 @@ export default {
 
               path.push(el);
               path.reverse();
+              
               return path;
             }
             setPredecessor(predecessor, item, el);

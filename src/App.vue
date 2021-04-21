@@ -11,6 +11,8 @@ import Toolbar from './components/Toolbar.vue';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap-vue/dist/bootstrap-vue.css';
 
+import PriorityQueue from 'js-priority-queue';
+
 export default {
   name: 'App',
   components: {
